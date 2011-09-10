@@ -32,7 +32,7 @@ public class SkinGUI extends JFrame {
 	}
 
 	private void initGUI() {
-		setTitle("Skin Creator");
+		setTitle("Skin Creator V1.0.2");
 		setSize(800, 600);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 

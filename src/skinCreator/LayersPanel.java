@@ -26,6 +26,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.TreePath;
@@ -39,7 +40,7 @@ public class LayersPanel extends JPanel implements ActionListener,
 	private int layerCounter = 0;
 	private List<Layer> layers;
 	private JList list;
-	//private final int LIST_WIDTH = 150;
+	// private final int LIST_WIDTH = 150;
 	private JButton moveDownButton;
 	private JButton moveUpButton;
 	private JButton removeButton;
@@ -101,28 +102,34 @@ public class LayersPanel extends JPanel implements ActionListener,
 		for (Layer layer : layersToDraw) {
 			path = layer.getPath();
 
-			if (path == null) {
-				break;
-			}
-
-			pathCount = path.getPathCount();
-			folderName = path.getPathComponent(pathCount - 2).toString();
-			fileName = path.getPathComponent(pathCount - 1).toString();
-			// Check if file is a directory
-			tempFile = new File(fileName);
-			if (tempFile.exists()) {
-				if (tempFile.isDirectory()) {
-					break;
+			if (path != null) {
+				boolean exitIteration = false;
+				// System.out.println("not null");
+				pathCount = path.getPathCount();
+				folderName = path.getPathComponent(pathCount - 2).toString();
+				fileName = path.getPathComponent(pathCount - 1).toString();
+				// Check if file is a directory
+				tempFile = new File(fileName);
+				if (tempFile.exists()) {
+					if (tempFile.isDirectory()) {
+						exitIteration = true;
+					}
 				}
-			}
 
-			combinedFileName = folderName + File.separator + fileName;
-			// System.out.println(combinedFileName);
+				if (!exitIteration) { // only run this if last item in the path
+										// is not a directory, ie, last item
+										// contains file name
+					combinedFileName = folderName + File.separator + fileName;
+					// System.out.println(combinedFileName);
+					tempFile = new File(combinedFileName);
+					if (tempFile.exists() && tempFile.isFile()) {
+						// System.out.println("added file:" + combinedFileName);
+						files.add(tempFile);
 
-			tempFile = new File(combinedFileName);
-			if (tempFile.exists() && tempFile.isFile()) {
-				// System.out.println("added file:" + combinedFileName);
-				files.add(tempFile);
+					}
+
+				}
+
 			}
 		}
 
@@ -169,16 +176,17 @@ public class LayersPanel extends JPanel implements ActionListener,
 		layers = new ArrayList<Layer>();
 		this.setLayout(new BorderLayout());
 
-		
 		list = new JList();
-		JScrollPane listScrollPane = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		JScrollPane listScrollPane = new JScrollPane(list,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		listScrollPane.setPreferredSize(new Dimension(100, 200));
 		listScrollPane.setMaximumSize(new Dimension(100, 500));
-		//listScrollPane.setViewportView(list);
+		// listScrollPane.setViewportView(list);
 		list.addListSelectionListener(this);
-		//list.setFixedCellWidth(LIST_WIDTH);
-		//listScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		//listScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		// list.setFixedCellWidth(LIST_WIDTH);
+		// listScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		// listScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
 		add(listScrollPane, BorderLayout.CENTER);
 
@@ -238,9 +246,9 @@ public class LayersPanel extends JPanel implements ActionListener,
 
 	public void setLayers(List<Layer> newLayers) {
 		this.layers = newLayers;
-		//System.out.println("new layers:" + newLayers);
+		// System.out.println("new layers:" + newLayers);
 		updateList(0);
-		//System.out.println("layers:" + layers);
+		// System.out.println("layers:" + layers);
 	}
 
 	private void updateList() {
@@ -263,7 +271,8 @@ public class LayersPanel extends JPanel implements ActionListener,
 			listText[i] = text;
 
 			if (path != null) {
-				//System.out.println("not null");
+				boolean exitIteration = false;
+				// System.out.println("not null");
 				pathCount = path.getPathCount();
 				folderName = path.getPathComponent(pathCount - 2).toString();
 				fileName = path.getPathComponent(pathCount - 1).toString();
@@ -271,14 +280,18 @@ public class LayersPanel extends JPanel implements ActionListener,
 				tempFile = new File(fileName);
 				if (tempFile.exists()) {
 					if (tempFile.isDirectory()) {
-						break;
+						exitIteration = true;
 					}
 				}
 
-				combinedFileName = folderName + File.separator + fileName;
-				listText[i] = text + " - " + combinedFileName;
-				//System.out.println(combinedFileName);
-				
+				if (!exitIteration) { // only run this if last item in the path
+										// is not a directory, ie, last item
+										// contains file name
+					combinedFileName = folderName + File.separator + fileName;
+					listText[i] = text + " - " + combinedFileName;
+					// System.out.println(combinedFileName);
+				}
+
 			}
 		}
 
@@ -296,7 +309,7 @@ public class LayersPanel extends JPanel implements ActionListener,
 				return strings.length;
 			}
 		});
-		
+
 		list.setSelectedIndex(-1);
 	}
 

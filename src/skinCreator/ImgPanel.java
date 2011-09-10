@@ -52,40 +52,55 @@ public class ImgPanel extends JPanel {
 				newAlpha = newColourVal >>> 24;
 				// if greater than 0, then pixel is visible
 				if (newAlpha > 0) {
-					
+
 					if (newAlpha == 255) { // If new colour is solid
 						original.setRGB(x, y, newColourVal);
 					} else { // if new colour is semi transparent
 						// setRGB value = 0xAARRGGBB
 						// AA = 0 - transparent, AA = FF - solid
 						origColourVal = original.getRGB(x, y);
-						
-						int origBlue = (origColourVal & 0x000000FF); // get blue value
-						int origGreen = (origColourVal & 0x0000FF00) >>> 8; // get green value
-						int origRed = (origColourVal & 0x00FF0000) >>> 16; // get red value
-						
+
+						int origBlue = (origColourVal & 0x000000FF); // get blue
+																		// value
+						int origGreen = (origColourVal & 0x0000FF00) >>> 8; // get
+																			// green
+																			// value
+						int origRed = (origColourVal & 0x00FF0000) >>> 16; // get
+																			// red
+																			// value
+
 						int newBlue = (newColourVal & 0x000000FF);
 						int newGreen = (newColourVal & 0x0000FF00) >>> 8;
 						int newRed = (newColourVal & 0x00FF0000) >>> 16;
-						
-						// Colour-out = Colour-new + (1 - alpha-new)*Colour-original
-						newBlue = newBlue + (((255 - newAlpha) * origBlue)/255);
-						newGreen = newGreen + (((255 - newAlpha) * origGreen)/255);
-						newRed = newRed + (((255 - newAlpha) * origRed)/255);
-						
+
+						// Colour-out = Colour-new + (1 -
+						// alpha-new)*Colour-original
+						newBlue = newBlue
+								+ (((255 - newAlpha) * origBlue) / 255);
+						newGreen = newGreen
+								+ (((255 - newAlpha) * origGreen) / 255);
+						newRed = newRed + (((255 - newAlpha) * origRed) / 255);
+
 						int colourToSet = 0x0000FF00;
-						
-						colourToSet = colourToSet | newRed; // colour is now 0x0000FFRR
-						colourToSet = colourToSet << 8; // colour is now 0x00FFRR00
-						colourToSet = colourToSet | newGreen; // colour is now 0x00FFRRGG
-						colourToSet = colourToSet << 8; // colour is now 0xFFRRGG00
-						colourToSet = colourToSet | newBlue; // colour is now 0xFFRRGGBB
-						//System.out.println("R=" + Integer.toHexString(newRed) + "G=" + Integer.toHexString(newGreen) + "B=" + Integer.toHexString(newBlue));
-						//System.out.println(Integer.toHexString(colourToSet));
-						
+
+						colourToSet = colourToSet | newRed; // colour is now
+															// 0x0000FFRR
+						colourToSet = colourToSet << 8; // colour is now
+														// 0x00FFRR00
+						colourToSet = colourToSet | newGreen; // colour is now
+																// 0x00FFRRGG
+						colourToSet = colourToSet << 8; // colour is now
+														// 0xFFRRGG00
+						colourToSet = colourToSet | newBlue; // colour is now
+																// 0xFFRRGGBB
+						// System.out.println("R=" + Integer.toHexString(newRed)
+						// + "G=" + Integer.toHexString(newGreen) + "B=" +
+						// Integer.toHexString(newBlue));
+						// System.out.println(Integer.toHexString(colourToSet));
+
 						original.setRGB(x, y, colourToSet);
 					}
-					
+
 				}
 
 			}

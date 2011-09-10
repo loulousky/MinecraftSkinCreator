@@ -1,3 +1,14 @@
+/**
+ * Copyright (C) Matt Fisher 2011
+ * This software is provided as-is. I am not responsible nor liable for 
+ * any data loss, hardware damage, disaster nor any other damages from 
+ * use of this code. Use of this software is at your own risk.
+ * 
+ * Feel free to use, modify and distribute the source code and programs 
+ * containing parts of the source code, as long as I am credited 
+ * where necessary.
+ */
+
 package skinCreator;
 
 import java.awt.event.ActionEvent;

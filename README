@@ -1,0 +1,21 @@
+MinecraftSkinCreator v1.0
+
+Made to easily make skins from Delmarks suit packs
+
+Usage:
+Before running program, download and extract Delmarks pack from:
+http://www.minecraftforum.net/topic/150154-release-a-comprehensive-collection-of-fine-suits-20/
+and base textures from
+http://www.minecraftforum.net/topic/369978-release-a-comprehensive-collection-of-nekkid-people/page__p__5293288#entry5293288
+
+You should now have a folder containing 3 more folders: Base, Casual and Suits.
+Also put any base skins you would like to edit in this folder (or a subfolder you have created).
+
+Launch the program, and select the directory containing the above folders, and click "Open".
+Now add a layer, and choose what you would like to be on that layer (first layer should either be a "base" texture, or the skin you wish to customise) by browsing through the folders in the tree on the right. When you click on a .png file you will see the preview image on the bottom-left update. Click "Save Changes" to commit that layer. Clicking "Cancel changes" will revert that layer back to when you last clicked on Save Changes, or an empty layer if it is a new layer.
+
+You can modify the layer name by editing the text box at the top of the window, then click save changes.
+
+Continue adding layers until you are happy with the result, and click "Export current image as PNG" to save your skin. This button will save the image you can currently see on the bottom-left, but at the correct size for a skin.
+
+Clicking "Save layers" allows you to export the layers you have chosen to edit them at a later date.

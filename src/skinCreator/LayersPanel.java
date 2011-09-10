@@ -12,6 +12,7 @@
 package skinCreator;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -38,7 +39,7 @@ public class LayersPanel extends JPanel implements ActionListener,
 	private int layerCounter = 0;
 	private List<Layer> layers;
 	private JList list;
-	private final int LIST_WIDTH = 100;
+	//private final int LIST_WIDTH = 150;
 	private JButton moveDownButton;
 	private JButton moveUpButton;
 	private JButton removeButton;
@@ -168,11 +169,16 @@ public class LayersPanel extends JPanel implements ActionListener,
 		layers = new ArrayList<Layer>();
 		this.setLayout(new BorderLayout());
 
-		JScrollPane listScrollPane = new JScrollPane();
+		
 		list = new JList();
-		listScrollPane.setViewportView(list);
+		JScrollPane listScrollPane = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		listScrollPane.setPreferredSize(new Dimension(100, 200));
+		listScrollPane.setMaximumSize(new Dimension(100, 500));
+		//listScrollPane.setViewportView(list);
 		list.addListSelectionListener(this);
-		list.setFixedCellWidth(LIST_WIDTH);
+		//list.setFixedCellWidth(LIST_WIDTH);
+		//listScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		//listScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
 		add(listScrollPane, BorderLayout.CENTER);
 
@@ -232,21 +238,48 @@ public class LayersPanel extends JPanel implements ActionListener,
 
 	public void setLayers(List<Layer> newLayers) {
 		this.layers = newLayers;
-		System.out.println("new layers:" + newLayers);
+		//System.out.println("new layers:" + newLayers);
 		updateList(0);
-		System.out.println("layers:" + layers);
+		//System.out.println("layers:" + layers);
 	}
 
 	private void updateList() {
 		final String[] listText = new String[layers.size()];
 		Layer tempLayer;
 		String text;
+		TreePath path;
+		int pathCount;
+		String folderName;
+		String fileName;
+		File tempFile;
+		String combinedFileName;
 
 		for (int i = 0; i < listText.length; i++) {
 			text = "";
 			tempLayer = layers.get(i);
 			text = tempLayer.getLabel();
+
+			path = tempLayer.getPath();
 			listText[i] = text;
+
+			if (path != null) {
+				//System.out.println("not null");
+				pathCount = path.getPathCount();
+				folderName = path.getPathComponent(pathCount - 2).toString();
+				fileName = path.getPathComponent(pathCount - 1).toString();
+				// Check if file is a directory
+				tempFile = new File(fileName);
+				if (tempFile.exists()) {
+					if (tempFile.isDirectory()) {
+						break;
+					}
+				}
+
+				combinedFileName = folderName + File.separator + fileName;
+				listText[i] = text + " - " + combinedFileName;
+				//System.out.println(combinedFileName);
+				
+			}
 		}
 
 		list.setModel(new AbstractListModel() {
@@ -263,7 +296,7 @@ public class LayersPanel extends JPanel implements ActionListener,
 				return strings.length;
 			}
 		});
-
+		
 		list.setSelectedIndex(-1);
 	}
 

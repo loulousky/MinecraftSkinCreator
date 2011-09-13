@@ -12,15 +12,16 @@
 package skinCreator;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Collections;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -29,52 +30,71 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-class MyTreeCellRenderer extends DefaultTreeCellRenderer {
-
-	private static final long serialVersionUID = 7739867529125369465L;
-
-	// Only display last segment of nodes path in the tree
-	@Override
-	public Component getTreeCellRendererComponent(JTree tree, Object value,
-			boolean selected, boolean expanded, boolean leaf, int row,
-			boolean hasFocus) {
-
-		super.getTreeCellRendererComponent(tree, value, selected, expanded,
-				leaf, row, hasFocus);
-
-		String nodeText = value.toString();
-		nodeText = nodeText.substring(nodeText.lastIndexOf("\\") + 1);
-		setText(nodeText);
-
-		return this;
-	}
-
-}
-
+/**
+ * The Class OptionsPanel. Used to display layer name and selected image to the
+ * user
+ */
 public class OptionsPanel extends JPanel implements ActionListener,
 		TreeSelectionListener {
 
-	private static final long serialVersionUID = -4262623153000104091L;
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = -1050867789757012196L;
+
+	/** The cancel changes button. */
 	private JButton cancel;
+
+	/** The comms control. */
 	private Controller control;
+
+	/** The label field. */
 	private JTextField labelField;
+
+	/** The root folder. */
+	private File rootFolder;
+
+	/** The save button. */
 	private JButton save;
+
+	/** The tree. */
 	private JTree tree;
 
+	/**
+	 * Instantiates a new options panel.
+	 * 
+	 * @param control
+	 *            the comms control
+	 */
 	public OptionsPanel(Controller control) {
 		this.control = control;
-		initPanel(new File("."));
+		this.rootFolder = new File(".");
+		initPanel(this.rootFolder);
 	}
 
-	public OptionsPanel(Controller control, File dir) {
+	/**
+	 * Instantiates a new options panel.
+	 * 
+	 * @param control
+	 *            the comms control
+	 * @param rootFolder
+	 *            the root folder
+	 */
+	public OptionsPanel(Controller control, File rootFolder) {
 		this.control = control;
-		initPanel(dir);
+		this.rootFolder = rootFolder;
+		initPanel(this.rootFolder);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 * Action listener to trigger saving or resetting values, and then redraw
+	 * the image
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == save) {
@@ -87,83 +107,9 @@ public class OptionsPanel extends JPanel implements ActionListener,
 
 	}
 
-	/*
-	 * The method below is used from
-	 * http://www.java2s.com/Code/Java/File-Input-Output
-	 * /DisplayafilesysteminaJTreeview.htm The copyright notice below is copied
-	 * from the original source file. Copyright for this segment of code remains
-	 * with the original author as stated below.
+	/**
+	 * Collapse all tree nodes.
 	 */
-
-	/*
-	 * Copyright (c) Ian F. Darwin, http://www.darwinsys.com/, 1996-2002. All
-	 * rights reserved. Software written by Ian F. Darwin and others. $Id:
-	 * LICENSE,v 1.8 2004/02/09 03:33:38 ian Exp $
-	 * 
-	 * Redistribution and use in source and binary forms, with or without
-	 * modification, are permitted provided that the following conditions are
-	 * met: 1. Redistributions of source code must retain the above copyright
-	 * notice, this list of conditions and the following disclaimer. 2.
-	 * Redistributions in binary form must reproduce the above copyright notice,
-	 * this list of conditions and the following disclaimer in the documentation
-	 * and/or other materials provided with the distribution.
-	 * 
-	 * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
-	 * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	 * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-	 * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE
-	 * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	 * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	 * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	 * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	 * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-	 * THE POSSIBILITY OF SUCH DAMAGE.
-	 * 
-	 * Java, the Duke mascot, and all variants of Sun's Java "steaming coffee
-	 * cup" logo are trademarks of Sun Microsystems. Sun's, and James Gosling's,
-	 * pioneering role in inventing and promulgating (and standardizing) the
-	 * Java language and environment is gratefully acknowledged.
-	 * 
-	 * The pioneering role of Dennis Ritchie and Bjarne Stroustrup, of AT&T, for
-	 * inventing predecessor languages C and C++ is also gratefully
-	 * acknowledged.
-	 */
-	/** Add nodes from under "dir" into curTop. Highly recursive. */
-	DefaultMutableTreeNode addNodes(DefaultMutableTreeNode curTop, File dir) {
-		String curPath = dir.getPath();
-		DefaultMutableTreeNode curDir = new DefaultMutableTreeNode(curPath);
-		if (curTop != null) { // should only be null at root
-			curTop.add(curDir);
-		}
-		Vector<String> ol = new Vector<String>();
-
-		String[] tmp = dir.list();
-		for (int i = 0; i < tmp.length; i++)
-			ol.addElement(tmp[i]);
-		Collections.sort(ol, String.CASE_INSENSITIVE_ORDER);
-		File f;
-		Vector<String> files = new Vector<String>();
-		// Make two passes, one for Dirs and one for Files. This is #1.
-		for (int i = 0; i < ol.size(); i++) {
-			String thisObject = ol.elementAt(i);
-			String newPath;
-			if (curPath.equals("."))
-				newPath = thisObject;
-			else
-				newPath = curPath + File.separator + thisObject;
-
-			if ((f = new File(newPath)).isDirectory())
-				addNodes(curDir, f);
-			else
-				files.addElement(thisObject);
-		}
-		// Pass two: for files.
-		for (int fnum = 0; fnum < files.size(); fnum++)
-			curDir.add(new DefaultMutableTreeNode(files.elementAt(fnum)));
-		return curDir;
-	}
-
 	private void collapseAll() {
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel()
 				.getRoot();
@@ -172,6 +118,12 @@ public class OptionsPanel extends JPanel implements ActionListener,
 		}
 	}
 
+	/**
+	 * Enable/disable controls.
+	 * 
+	 * @param enable
+	 *            true if fields/buttons should be enabled, false otherwise
+	 */
 	private void enableControls(boolean enable) {
 		labelField.setEnabled(enable);
 		tree.setEnabled(enable);
@@ -179,6 +131,11 @@ public class OptionsPanel extends JPanel implements ActionListener,
 		cancel.setEnabled(enable);
 	}
 
+	/**
+	 * Gets the item values.
+	 * 
+	 * @return the items in a layer object
+	 */
 	public Layer getItems() {
 		Layer layer = new Layer();
 		layer.setLabel(getLabelText());
@@ -186,14 +143,30 @@ public class OptionsPanel extends JPanel implements ActionListener,
 		return layer;
 	}
 
+	/**
+	 * Gets the label text.
+	 * 
+	 * @return the label text
+	 */
 	private String getLabelText() {
 		return labelField.getText();
 	}
 
+	/**
+	 * Gets the tree path.
+	 * 
+	 * @return the tree path
+	 */
 	private TreePath getTreePath() {
 		return tree.getSelectionPath();
 	}
 
+	/**
+	 * Inits the panel.
+	 * 
+	 * @param dir
+	 *            the root directory
+	 */
 	private void initPanel(File dir) {
 		this.setLayout(new BorderLayout());
 
@@ -202,11 +175,14 @@ public class OptionsPanel extends JPanel implements ActionListener,
 		labelField.setBorder(idLabel);
 		add(BorderLayout.NORTH, labelField);
 
-		tree = new JTree(addNodes(null, dir));
+		DirectoryTree dirTree = new DirectoryTree();
+		DefaultMutableTreeNode treeNodes = dirTree
+				.getFileTreeAsMutableTreeNode(rootFolder);
+
+		tree = new JTree(treeNodes);
 
 		// Add a listener
 		tree.addTreeSelectionListener(this);
-		tree.setCellRenderer(new MyTreeCellRenderer());
 
 		// Lastly, put the JTree into a JScrollPane.
 		JScrollPane scrollpane = new JScrollPane();
@@ -226,6 +202,12 @@ public class OptionsPanel extends JPanel implements ActionListener,
 
 	}
 
+	/**
+	 * Sets the item values.
+	 * 
+	 * @param layer
+	 *            the values for the fields
+	 */
 	public void setItems(Layer layer) {
 		if (layer.getLabel() == "" && layer.getPath() == null) {
 			enableControls(false);
@@ -239,22 +221,93 @@ public class OptionsPanel extends JPanel implements ActionListener,
 
 	}
 
+	/**
+	 * Sets the label text.
+	 * 
+	 * @param text
+	 *            the new label text
+	 */
 	private void setLabelText(String text) {
 		labelField.setText(text);
 	}
 
+	/**
+	 * Sets the tree path. Nested for loops are for searching for correct node
+	 * to select - needed after loading a layers file
+	 * 
+	 * @param path
+	 *            the tree path to select
+	 */
 	private void setTreePath(TreePath path) {
-		// expandAll(tree, false);
+
 		collapseAll();
 		if (path != null) {
-			tree.setSelectionPath(path);
+			// System.out.println(path);
+
+			List<Object> objectPath = new ArrayList<Object>();
+			objectPath.add(tree.getModel().getRoot());
+
+			// Drop first item in path as it is the root node (already found and
+			// selected)
+			boolean dropFirst = true;
+			for (Object temp : path.getPath()) {
+				if (dropFirst) {
+					dropFirst = false;
+					continue;
+				}
+
+				String searchForName = temp.toString();
+				// System.out.println(searchForName);
+
+				Object searchObj = new DefaultMutableTreeNode(searchForName);
+
+				// Get last found node to search from - stops searching from the
+				// top
+				DefaultMutableTreeNode searchNode = (DefaultMutableTreeNode) objectPath
+						.get(objectPath.size() - 1);
+
+				boolean itemFound = false;
+				for (Enumeration<?> e = searchNode.children(); e
+						.hasMoreElements();) {
+					Object tempNode = e.nextElement();
+					Object userObject = ((DefaultMutableTreeNode) tempNode)
+							.getUserObject();
+
+					if (searchObj.toString().equals(userObject.toString())) {
+						// System.out.println("found it");
+						objectPath.add(tempNode);
+						itemFound = true;
+						break;
+					}
+				}
+				if (itemFound == false) {
+					JOptionPane.showMessageDialog(null,
+							MessageText.OptionsFailedToFindNode,
+							MessageText.OptionsFailedToFindNodeTitle,
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+
+			}
+
+			Object[] pathObjectArray = objectPath.toArray();
+
+			tree.expandPath(new TreePath(pathObjectArray));
+			tree.setSelectionPath(new TreePath(pathObjectArray));
 		} else {
 			tree.clearSelection();
 		}
 
 	}
 
-	// Tree selection listener
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * javax.swing.event.TreeSelectionListener#valueChanged(javax.swing.event
+	 * .TreeSelectionEvent) Tree change listener. Triggers a redraw to show the
+	 * selected item
+	 */
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 

@@ -23,22 +23,55 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+/**
+ * The Class ImgPanel. Creates the image file by combining images, and displays
+ * the larger image to the user.
+ */
 public class ImgPanel extends JPanel {
 
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 6436369557797536045L;
-	// private Controller control;
+
+	/** The image height - height of skin. */
 	private final int imageHeight = 32;
+
+	/** The image label - displays the image. */
 	private JLabel imageLabel;
+
+	/**
+	 * The image scale - how much to enlarge the normal skin size by to display
+	 * it.
+	 */
 	private final int imageScale = 5;
+
+	/** The image width - width of skin. */
 	private final int imageWidth = 64;
+
+	/** The output image - normal size skin for saving to png etc. */
 	private BufferedImage outputImage;
+
+	/** The scaled image - large image to display to the user. */
 	private BufferedImage scaledImage;
 
+	/**
+	 * Instantiates a new img panel.
+	 */
 	public ImgPanel() {
-		// this.control = control;
 		initPanel();
 	}
 
+	/**
+	 * Combine two images. If a pixel in toCombine is invisible, it is ignored
+	 * (original is left untouched) If a pixel is completely visible, the output
+	 * is set to the same value if a pixel is semi-transparent, then its value
+	 * is added to the original according to its alpha value
+	 * 
+	 * @param original
+	 *            the base image
+	 * @param toCombine
+	 *            the image to add on top
+	 * @return the combined image
+	 */
 	private BufferedImage combineImages(BufferedImage original,
 			BufferedImage toCombine) {
 
@@ -109,14 +142,25 @@ public class ImgPanel extends JPanel {
 
 	}
 
+	/**
+	 * Draw image from a list of files, save small image, and scale/display
+	 * large image to the user
+	 * 
+	 * @param files
+	 *            the files to draw
+	 */
 	public void drawList(List<File> files) {
 		if (files.size() == 0) {
 			// Draw default image
+			outputImage = makeBlankImage();
 		} else {
 			BufferedImage output = makeBlankImage();
 			BufferedImage tempImage = null;
 
 			for (File file : files) {
+				if (file == null)
+					continue; // skip if file is null
+
 				try {
 					// System.out.println("File: " + file.toString());
 					tempImage = ImageIO.read(file);
@@ -127,14 +171,17 @@ public class ImgPanel extends JPanel {
 			}
 
 			outputImage = output;
-			scaledImage = scaleImage(outputImage, imageScale);
-			imageLabel.setIcon(new ImageIcon(scaledImage));
-
 		}
+
+		scaledImage = scaleImage(outputImage, imageScale);
+		imageLabel.setIcon(new ImageIcon(scaledImage));
 	}
 
+	/**
+	 * Inits the panel.
+	 */
 	private void initPanel() {
-		outputImage = makeInitImage();
+		outputImage = makeBlankImage();
 		scaledImage = scaleImage(outputImage, imageScale);
 
 		this.setLayout(new BorderLayout());
@@ -142,6 +189,11 @@ public class ImgPanel extends JPanel {
 		add(imageLabel, BorderLayout.CENTER);
 	}
 
+	/**
+	 * Make blank image - image is completely transparent
+	 * 
+	 * @return the blank buffered image
+	 */
 	private BufferedImage makeBlankImage() {
 		BufferedImage bimage = new BufferedImage(imageWidth, imageHeight,
 				BufferedImage.TYPE_INT_ARGB);
@@ -157,17 +209,21 @@ public class ImgPanel extends JPanel {
 		return bimage;
 	}
 
-	private BufferedImage makeInitImage() {
-		BufferedImage bimage = makeBlankImage();
-		return bimage;
-	}
-
+	/**
+	 * Reset image - make it empty and transparent.
+	 */
 	public void resetImage() {
-		outputImage = makeInitImage();
+		outputImage = makeBlankImage();
 		scaledImage = scaleImage(outputImage, imageScale);
 		imageLabel.setIcon(new ImageIcon(scaledImage));
 	}
 
+	/**
+	 * Save png to a file.
+	 * 
+	 * @param file
+	 *            the file to save to
+	 */
 	public void savePNG(File file) {
 		try {
 			ImageIO.write(outputImage, "png", file);
@@ -176,6 +232,15 @@ public class ImgPanel extends JPanel {
 		}
 	}
 
+	/**
+	 * Enlarge image - used to display larger image to the user.
+	 * 
+	 * @param original
+	 *            the original image
+	 * @param scale
+	 *            the number of times bigger it should be
+	 * @return the scaled image
+	 */
 	private BufferedImage scaleImage(BufferedImage original, int scale) {
 
 		int newWidth = scale * original.getWidth();

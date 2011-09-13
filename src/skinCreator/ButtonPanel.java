@@ -29,22 +29,57 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+/**
+ * The Button Panel Class. Used for adding buttons to the bottom right of the
+ * main window to save/load layers, and to export the image as PNG
+ */
 public class ButtonPanel extends JPanel implements ActionListener {
 
+	/**
+	 * Version for saved layer file. Used to ensure we don't attempt to load an
+	 * old version
+	 */
+	private static final String layerFileVersion = "1.1";
+
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -324718791157821176L;
+
+	/** Communication control. */
 	private Controller control;
+
+	/** The load layers button. */
 	private JButton loadLayersButton;
+
+	/** The root folder - paths are relative to this. */
+	private File rootFolder;
+
+	/** The save layers button. */
 	private JButton saveLayersButton;
+
+	/** The save PNG button. */
 	private JButton savePNGButton;
 
-	// private List<Layer> layers;
-
-	public ButtonPanel(Controller control) {
+	/**
+	 * Instantiates a new button panel.
+	 * 
+	 * @param control
+	 *            the communication controller
+	 * @param rootFolder
+	 *            the root folder
+	 */
+	public ButtonPanel(Controller control, File rootFolder) {
 		this.control = control;
+		this.rootFolder = rootFolder;
 		initPanel();
 	}
 
-	@SuppressWarnings("unchecked")
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 * Triggers method according to which button fired it.
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == savePNGButton) {
@@ -58,34 +93,15 @@ public class ButtonPanel extends JPanel implements ActionListener {
 			}
 
 		} else if (e.getSource() == saveLayersButton) {
-			// TODO
-			List<Layer> layers = new ArrayList<Layer>();
-			layers.addAll(control.getLayers());
-			System.out.println("button layers:" + layers);
 
 			FileNameExtensionFilter filter = new FileNameExtensionFilter(
 					"Layer File (*.lay)", "lay");
 			File fileToSave = saveFile(filter, "Save Layer File");
 
-			if (fileToSave != null) {
-				// output list to file
-				try {
-					FileOutputStream fileOutputStream = new FileOutputStream(
-							fileToSave);
-
-					ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-							fileOutputStream);
-					objectOutputStream.writeObject(layers);
-					objectOutputStream.close();
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				} catch (IOException e2) {
-					e2.printStackTrace();
-				}
-			}
+			saveLayersToFile(fileToSave);
 
 		} else if (e.getSource() == loadLayersButton) {
-			JFileChooser fileChooser = new JFileChooser(".");
+			JFileChooser fileChooser = new JFileChooser(rootFolder);
 			fileChooser.setDialogTitle("open Layer File");
 			FileNameExtensionFilter filter = new FileNameExtensionFilter(
 					"Layer File (*.lay)", "lay");
@@ -95,27 +111,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File file = fileChooser.getSelectedFile();
 				if (file.exists() && file.isFile()) {
-					// Read object from file
-					FileInputStream fileInputStream;
-					try {
-						fileInputStream = new FileInputStream(file);
-						ObjectInputStream objectInputStream = new ObjectInputStream(
-								fileInputStream);
-
-						Object tempObj = objectInputStream.readObject();
-						List<Layer> layers = new ArrayList<Layer>();
-						if (tempObj instanceof List) {
-							layers = (List<Layer>) tempObj;
-							control.setLayers(layers);
-						}
-						objectInputStream.close();
-					} catch (FileNotFoundException e1) {
-						e1.printStackTrace();
-					} catch (IOException e2) {
-						e2.printStackTrace();
-					} catch (ClassNotFoundException e3) {
-						e3.printStackTrace();
-					}
+					loadLayersFromFile(file);
 
 				}
 
@@ -124,12 +120,22 @@ public class ButtonPanel extends JPanel implements ActionListener {
 
 	}
 
+	/**
+	 * Enable controls. Currently used for disabling/enabling save buttons when
+	 * there are no layers
+	 * 
+	 * @param enable
+	 *            true if buttons should be enabled
+	 */
 	public void enableControls(boolean enable) {
 		saveLayersButton.setEnabled(enable);
+		savePNGButton.setEnabled(enable);
 	}
 
+	/**
+	 * Initialises the panel, buttons and adds action listeners
+	 */
 	private void initPanel() {
-		// this.setLayout(new BorderLayout());
 		savePNGButton = new JButton("Export current image as PNG");
 		saveLayersButton = new JButton("Save layers");
 		loadLayersButton = new JButton("Load layers");
@@ -138,8 +144,8 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		saveLayersButton.addActionListener(this);
 		loadLayersButton.addActionListener(this);
 
-		saveLayersButton.setEnabled(false);
-		// loadLayersButton.setEnabled(false);
+		// initial setting for buttons/controls
+		enableControls(false);
 
 		add(savePNGButton);
 		add(saveLayersButton);
@@ -148,17 +154,86 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	}
 
 	/**
-	 * Prepares a file for saving by another method.
+	 * Load layers from a file.
+	 * 
+	 * Unchecked warnings suppressed for cast from object to List
+	 * 
+	 * @param fileToLoad
+	 *            the file to load from
+	 */
+	@SuppressWarnings("unchecked")
+	private void loadLayersFromFile(File fileToLoad) {
+
+		try {
+			FileInputStream fileInputStream = new FileInputStream(fileToLoad);
+			ObjectInputStream objectInputStream = new ObjectInputStream(
+					fileInputStream);
+
+			// load version
+			Object versionObject = objectInputStream.readObject();
+			String versionString = "";
+
+			// check valid
+			if (versionObject instanceof String) {
+				// file has string, likely right format
+				versionString = (String) versionObject;
+			} else {
+				// invalid file
+				JOptionPane.showMessageDialog(null,
+						MessageText.ButtonInvalidLayer,
+						MessageText.ButtonInvalidLayerTitle,
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			if (!versionString.equals(layerFileVersion)) {
+				// Invalid version
+				JOptionPane.showMessageDialog(null,
+						MessageText.ButtonVersionMatchFailed,
+						MessageText.ButtonVersionMatchFailedTitle,
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			// load layer counter
+			Object counterObj = objectInputStream.readObject();
+			int counter = 0;
+			if (counterObj instanceof Integer) {
+				counter = (Integer) counterObj;
+				control.setLayerCounter(counter);
+			}
+
+			// load list of paths
+			Object listObj = objectInputStream.readObject();
+
+			List<Layer> layers = new ArrayList<Layer>();
+			if (listObj instanceof List) {
+				layers = (List<Layer>) listObj;
+				control.setLayers(layers);
+			}
+
+			objectInputStream.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		} catch (ClassNotFoundException e3) {
+			e3.printStackTrace();
+		}
+	}
+
+	/**
+	 * Prepares a file for saving by another method using a file chooser
 	 * 
 	 * @param filter
-	 *            The file filter
+	 *            The file filter to allow saving to
 	 * @param title
 	 *            Title of the dialog box
 	 * @return The file to save to, else null if user cancelled
 	 */
 	private File saveFile(FileNameExtensionFilter filter, String title) {
 
-		JFileChooser filechooser = new JFileChooser(".");
+		JFileChooser filechooser = new JFileChooser(rootFolder);
 		filechooser.setFileFilter(filter);
 		filechooser.setDialogTitle(title);
 
@@ -169,44 +244,22 @@ public class ButtonPanel extends JPanel implements ActionListener {
 			// System.out.println("Save path: " + file.getParent());
 
 			// Check file name extension
-			boolean append = false;
-			String ext = filter.getExtensions()[0];
-
+			String extension = filter.getExtensions()[0];
 			String currentFilename = file.getName();
-			if (currentFilename.length() < 5) {
-				// append extension
-				append = true;
-			} else {
-				// split around '.'
-				String[] splitName = currentFilename.split("\\.");
-				if (splitName.length == 1) {
-					// has no extension, append it
-					append = true;
-				} else {
-					String extension = splitName[splitName.length - 1];
-					// check last segment to see if it has right extension, if
-					// not, append
-					if (!extension.equalsIgnoreCase(ext)) {
-						append = true;
-					}
-				}
+
+			if (!currentFilename.toLowerCase().endsWith("." + extension)) {
+				currentFilename += "." + extension;
 			}
 
-			if (append) {
-				// System.out.println("appending");
-
-				currentFilename += "." + ext;
-				// System.out.println(ext);
-
-			}
 			// System.out.println(currentFilename);
 			File fileToSave = new File(file.getParentFile(), currentFilename);
 
 			if (fileToSave.exists()) {
 				// confirm overwrite
 				int n = JOptionPane.showConfirmDialog(this,
-						"Are you sure you wish to overwrite this file?",
-						"Confirm Overwrite", JOptionPane.YES_NO_OPTION);
+						MessageText.ButtonOverwriteFile,
+						MessageText.ButtonOverwriteFileTitle,
+						JOptionPane.YES_NO_OPTION);
 
 				if (n == JOptionPane.YES_OPTION) { // user clicked yes
 					return fileToSave;
@@ -223,4 +276,40 @@ public class ButtonPanel extends JPanel implements ActionListener {
 
 	}
 
+	/**
+	 * Save layers to file.
+	 * 
+	 * @param fileToSave
+	 *            the file to save to
+	 */
+	private void saveLayersToFile(File fileToSave) {
+
+		if (fileToSave == null) {
+			return;
+		}
+		List<Layer> layers = new ArrayList<Layer>();
+		layers.addAll(control.getLayers());
+		// System.out.println("button layers:" + layers);
+
+		try {
+			FileOutputStream fileOutputStream = new FileOutputStream(fileToSave);
+			ObjectOutputStream objectOutputStream = new ObjectOutputStream(
+					fileOutputStream);
+
+			// save file version
+			objectOutputStream.writeObject(layerFileVersion);
+			// save layer counter
+			int counter = control.getLayerCounter();
+			objectOutputStream.writeObject(counter);
+			// save list of paths
+			objectOutputStream.writeObject(layers);
+
+			objectOutputStream.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		}
+
+	}
 }

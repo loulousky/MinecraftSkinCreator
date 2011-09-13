@@ -31,25 +31,62 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.TreePath;
 
+/**
+ * The Class LayersPanel.
+ */
 public class LayersPanel extends JPanel implements ActionListener,
 		ListSelectionListener {
 
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -3104941829477936137L;
+
+	/** The add layer button. */
 	private JButton addButton;
+
+	/** The communication controller. */
 	private Controller control;
+
+	/** The layer counter. */
 	private int layerCounter = 0;
+
+	/** The layers. */
 	private List<Layer> layers;
+
+	/** The list to show layers. */
 	private JList list;
-	// private final int LIST_WIDTH = 150;
+
+	/** The move layer down button. */
 	private JButton moveDownButton;
+
+	/** The move layer up button. */
 	private JButton moveUpButton;
+
+	/** The remove layer button. */
 	private JButton removeButton;
 
-	public LayersPanel(Controller control) {
+	/** The root folder. */
+	private File rootFolder;
+
+	/**
+	 * Instantiates a new layers panel.
+	 * 
+	 * @param control
+	 *            the comms control
+	 * @param rootFolder
+	 *            the root folder
+	 */
+	public LayersPanel(Controller control, File rootFolder) {
 		this.control = control;
+		this.rootFolder = rootFolder;
 		initPanel();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == addButton) {
@@ -64,8 +101,9 @@ public class LayersPanel extends JPanel implements ActionListener,
 			int index = list.getSelectedIndex();
 
 			int n = JOptionPane.showConfirmDialog(this,
-					"Are you sure you wish to delete this layer?",
-					"Confirm Deletion of Layer", JOptionPane.YES_NO_OPTION);
+					MessageText.LayersDeleteLayer,
+					MessageText.LayersDeleteLayerTitle,
+					JOptionPane.YES_NO_OPTION);
 
 			if (n == JOptionPane.YES_OPTION) { // user clicked yes
 				layers.remove(index);
@@ -82,80 +120,91 @@ public class LayersPanel extends JPanel implements ActionListener,
 
 	}
 
-	// wrapper for drawing image from list
+	/**
+	 * Draws the image from the saved list of layers. Public wrapper to use
+	 * saved list without specifying
+	 */
 	public void drawImage() {
 		// System.out.println("draw image");
 		drawImage(layers);
 	}
 
-	// prepares valid input for the image to be redrawn
+	/**
+	 * Prepares valid files ready for imgPanel to draw the image from a list of
+	 * layers.
+	 * 
+	 * @param layersToDraw
+	 *            the layers to be drawn
+	 */
 	private void drawImage(List<Layer> layersToDraw) {
 		List<File> files = new ArrayList<File>();
 
 		File tempFile;
-		TreePath path;
-		int pathCount;
-		String folderName;
-		String fileName;
-		String combinedFileName;
+		// TreePath path;
+		Object[] path = null; // Holds strings to file from root
+		String relativeFileName;
 
 		for (Layer layer : layersToDraw) {
-			path = layer.getPath();
-
-			if (path != null) {
-				boolean exitIteration = false;
-				// System.out.println("not null");
-				pathCount = path.getPathCount();
-				folderName = path.getPathComponent(pathCount - 2).toString();
-				fileName = path.getPathComponent(pathCount - 1).toString();
-				// Check if file is a directory
-				tempFile = new File(fileName);
-				if (tempFile.exists()) {
-					if (tempFile.isDirectory()) {
-						exitIteration = true;
-					}
+			// Check and stop any null pointers
+			TreePath tempPath = layer.getPath();
+			if (tempPath != null) {
+				path = tempPath.getPath();
+				if (path == null) {
+					continue;
 				}
+			} else {
+				continue;
+			}
 
-				if (!exitIteration) { // only run this if last item in the path
-										// is not a directory, ie, last item
-										// contains file name
-					combinedFileName = folderName + File.separator + fileName;
-					// System.out.println(combinedFileName);
-					tempFile = new File(combinedFileName);
-					if (tempFile.exists() && tempFile.isFile()) {
-						// System.out.println("added file:" + combinedFileName);
-						files.add(tempFile);
-
-					}
-
+			// Get relative path to the image
+			relativeFileName = "";
+			boolean dropFirstEntry = true;
+			for (Object tempOb : path) {
+				if (dropFirstEntry) {
+					dropFirstEntry = false;
+				} else {
+					relativeFileName += File.separator;
+					relativeFileName += tempOb.toString();
 				}
 
 			}
+
+			tempFile = new File(rootFolder + relativeFileName);
+
+			// System.out.println(rootFolder + relativeFileName);
+
+			// if its a directory, don't add to the list
+			if (tempFile.exists()) {
+				// System.out.println("exists");
+				if (tempFile.isDirectory()) {
+					// System.out.println("is directory");
+					continue; // exit this iteration
+				}
+
+				// if the file exists and is actually a file, add to the list
+				if (tempFile.isFile()) {
+					// System.out.println("is file");
+					files.add(tempFile);
+				}
+			} else {
+				// System.out.println("doesnt exist");
+			}
+
 		}
 
 		control.sendListToDraw(files);
 	}
 
-	private void enableControls(boolean enable) {
-		addButton.setEnabled(true);
-		removeButton.setEnabled(enable);
-		moveDownButton.setEnabled(enable);
-		moveUpButton.setEnabled(enable);
-	}
-
-	public Layer getCurrentLayer() {
-		int index = list.getSelectedIndex();
-		Layer layer = layers.get(index);
-		return layer;
-	}
-
-	public List<Layer> getLayers() {
-		return layers;
-
-	}
-
-	// called from controller - draws image with temporarily changed layer
-	public void getTempPath(Layer tempLayer) {
+	/**
+	 * Called from Comms control - causes a redraw of the image using a
+	 * temporarily changed layer. Used to preview each item when clicked on.
+	 * Works by temporarily changing the selected layer to contain the path to
+	 * newly selected item
+	 * 
+	 * @param tempLayer
+	 *            the temporary layer to draw
+	 */
+	public void drawImageTempPath(Layer tempLayer) {
 		// System.out.println("draw temp image");
 
 		List<Layer> tempLayers = new ArrayList<Layer>();
@@ -165,12 +214,56 @@ public class LayersPanel extends JPanel implements ActionListener,
 		if (index != -1) {
 			tempLayers.set(index, tempLayer);
 		}
-		// if (tempLayer.getPath() == null)
-		// System.out.println("null");
 
 		drawImage(tempLayers);
 	}
 
+	/**
+	 * Enable/disable button controls.
+	 * 
+	 * @param enable
+	 *            true if buttons should be enabled, false otherwise
+	 */
+	private void enableControls(boolean enable) {
+		addButton.setEnabled(true);
+		removeButton.setEnabled(enable);
+		moveDownButton.setEnabled(enable);
+		moveUpButton.setEnabled(enable);
+	}
+
+	/**
+	 * Gets the currently selected layer.
+	 * 
+	 * @return the current layer
+	 */
+	public Layer getCurrentLayer() {
+		int index = list.getSelectedIndex();
+		Layer layer = layers.get(index);
+		return layer;
+	}
+
+	/**
+	 * Gets the layer counter.
+	 * 
+	 * @return the layer counter
+	 */
+	public int getLayerCounter() {
+		return layerCounter;
+	}
+
+	/**
+	 * Gets the layers.
+	 * 
+	 * @return the layers
+	 */
+	public List<Layer> getLayers() {
+		return layers;
+
+	}
+
+	/**
+	 * Inits the panel.
+	 */
 	private void initPanel() {
 
 		layers = new ArrayList<Layer>();
@@ -182,11 +275,7 @@ public class LayersPanel extends JPanel implements ActionListener,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		listScrollPane.setPreferredSize(new Dimension(100, 200));
 		listScrollPane.setMaximumSize(new Dimension(100, 500));
-		// listScrollPane.setViewportView(list);
 		list.addListSelectionListener(this);
-		// list.setFixedCellWidth(LIST_WIDTH);
-		// listScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		// listScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
 		add(listScrollPane, BorderLayout.CENTER);
 
@@ -216,6 +305,15 @@ public class LayersPanel extends JPanel implements ActionListener,
 
 	}
 
+	/**
+	 * Move layer to a new location in the list. Contains checks to ensure new
+	 * location will not be out of bounds
+	 * 
+	 * @param currentIndex
+	 *            the current index of the layer
+	 * @param newIndex
+	 *            the new index for the layer
+	 */
 	private void moveLayer(int currentIndex, int newIndex) {
 
 		// Ensure newIndex will not be out of bounds
@@ -233,6 +331,12 @@ public class LayersPanel extends JPanel implements ActionListener,
 		// System.out.println("After swaping, ArrayList contains : " + layers);
 	}
 
+	/**
+	 * Receive new layer item. Called from optionsPanel when save is clicked
+	 * 
+	 * @param layer
+	 *            the new layer
+	 */
 	public void receiveLayerItem(Layer layer) {
 		int selectedIndex = list.getSelectedIndex();
 		// Check item is selected before saving
@@ -244,6 +348,22 @@ public class LayersPanel extends JPanel implements ActionListener,
 		list.setSelectedIndex(selectedIndex);
 	}
 
+	/**
+	 * Sets the layer counter.
+	 * 
+	 * @param layerCounter
+	 *            the new layer counter
+	 */
+	public void setLayerCounter(int layerCounter) {
+		this.layerCounter = layerCounter;
+	}
+
+	/**
+	 * Sets the layers. Used when loading a layers file
+	 * 
+	 * @param newLayers
+	 *            the new layers
+	 */
 	public void setLayers(List<Layer> newLayers) {
 		this.layers = newLayers;
 		// System.out.println("new layers:" + newLayers);
@@ -251,16 +371,15 @@ public class LayersPanel extends JPanel implements ActionListener,
 		// System.out.println("layers:" + layers);
 	}
 
+	/**
+	 * Update list to display the layers
+	 */
 	private void updateList() {
 		final String[] listText = new String[layers.size()];
 		Layer tempLayer;
 		String text;
 		TreePath path;
-		int pathCount;
-		String folderName;
-		String fileName;
 		File tempFile;
-		String combinedFileName;
 
 		for (int i = 0; i < listText.length; i++) {
 			text = "";
@@ -271,30 +390,39 @@ public class LayersPanel extends JPanel implements ActionListener,
 			listText[i] = text;
 
 			if (path != null) {
-				boolean exitIteration = false;
 				// System.out.println("not null");
-				pathCount = path.getPathCount();
-				folderName = path.getPathComponent(pathCount - 2).toString();
-				fileName = path.getPathComponent(pathCount - 1).toString();
+				String relativeFileName = "";
+				boolean dropFirstEntry = false;
+				for (Object tempOb : path.getPath()) {
+					if (dropFirstEntry) {
+						dropFirstEntry = false;
+					} else {
+						relativeFileName += File.separator;
+						relativeFileName += tempOb.toString();
+					}
+
+				}
+
 				// Check if file is a directory
-				tempFile = new File(fileName);
+				tempFile = new File(rootFolder + relativeFileName);
 				if (tempFile.exists()) {
 					if (tempFile.isDirectory()) {
-						exitIteration = true;
+						continue;
 					}
 				}
 
-				if (!exitIteration) { // only run this if last item in the path
-										// is not a directory, ie, last item
-										// contains file name
-					combinedFileName = folderName + File.separator + fileName;
-					listText[i] = text + " - " + combinedFileName;
-					// System.out.println(combinedFileName);
-				}
+				// only run this if last item in the path
+				// is not a directory, ie, last item
+				// contains file name
+				listText[i] = text + " - " + relativeFileName;
+				// System.out.println(combinedFileName);
 
 			}
 		}
 
+		/*
+		 * Set the text for items in the list
+		 */
 		list.setModel(new AbstractListModel() {
 			private static final long serialVersionUID = 224156126562699821L;
 			String[] strings = listText;
@@ -313,6 +441,12 @@ public class LayersPanel extends JPanel implements ActionListener,
 		list.setSelectedIndex(-1);
 	}
 
+	/**
+	 * Update list to display the layers, and then select the required index
+	 * 
+	 * @param index
+	 *            the index to select
+	 */
 	private void updateList(int index) {
 		updateList();
 		if (index >= layers.size()) {
@@ -325,11 +459,20 @@ public class LayersPanel extends JPanel implements ActionListener,
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event
+	 * .ListSelectionEvent) List change listener, sets the optionsPanel to
+	 * display the correct values
+	 */
 	@Override
 	public void valueChanged(ListSelectionEvent arg0) {
 		if (list.getSelectedIndex() != -1) {
 			enableControls(true);
 			int index = list.getSelectedIndex();
+
 			control.setOptionsPanelItems(layers.get(index));
 		} else {
 			enableControls(false);

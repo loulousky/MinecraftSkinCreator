@@ -16,115 +16,209 @@ import java.util.List;
 
 import javax.swing.tree.TreePath;
 
+/**
+ * The communication Controller. Allows communication between each of the
+ * different panels without every panel knowing about all the others.
+ */
 public class Controller {
 
+	/** The button panel. */
 	private ButtonPanel buttonPanel;
+
+	/** The img panel - for displaying the current image. */
 	private ImgPanel imgPanel;
+
+	/** The layers panel. */
 	private LayersPanel layersPanel;
+
+	/** The options panel. */
 	private OptionsPanel optionsPanel;
 
+	/**
+	 * Instantiates a new controller. Empty as currently nothing to initialise
+	 * on construction
+	 */
 	public Controller() {
 
 	}
 
-	// called from optionspanel
+	/**
+	 * Draws the image using the current saved layers. This is called from
+	 * optionsPanel when save changes is clicked
+	 */
 	public void drawFromLayers() {
 		layersPanel.drawImage();
 	}
 
-	// called from layerspanel
+	/**
+	 * Toggle if buttons can be clicked or not. Used to disable both save
+	 * buttons when there are no layers loaded This is called from layersPanel
+	 * (when there is a change to the selection)
+	 * 
+	 * @param enable
+	 *            true if buttons should be enabled, false otherwise
+	 */
 	public void enableButtonControls(boolean enable) {
 		buttonPanel.enableControls(enable);
 	}
 
-	public ButtonPanel getButtonPanel() {
-		return buttonPanel;
+	/**
+	 * Gets the current counter for the number of layers. Used to give each new
+	 * layer a unique name. Called from buttonPanel when saving a layers file
+	 * 
+	 * @return the layer counter
+	 */
+	public int getLayerCounter() {
+		return layersPanel.getLayerCounter();
 	}
 
-	public ImgPanel getImgPanel() {
-		return imgPanel;
-	}
-
-	// called from ButtonPanel to retrieve current layers
+	/**
+	 * Gets the current layers from the layersPanel. Called from buttonPanel
+	 * when saving the layers file
+	 * 
+	 * @return the list of layers
+	 */
 	public List<Layer> getLayers() {
 		List<Layer> layers = layersPanel.getLayers();
 		return layers;
 
 	}
 
-	public LayersPanel getLayersPanel() {
-		return layersPanel;
-	}
-
-	public OptionsPanel getOptionsPanel() {
-		return optionsPanel;
-	}
-
-	// called from layerspanel
-	public Layer getOptionsPanelItems() {
-		Layer layer = optionsPanel.getItems();
-
-		return layer;
-	}
-
+	/**
+	 * Resets the visible image to be invisible. Called from layersPanel when
+	 * there are no layers to draw
+	 */
 	public void resetImage() {
 		imgPanel.resetImage();
 	}
 
-	// called from optionspanel
+	/**
+	 * Reset any changes on option panel items to match the saved layer. Called
+	 * from optionsPanel when cancel changes is clicked
+	 */
 	public void resetOptionPanelItems() {
 		// get layer from layerspanel
 		Layer layer = layersPanel.getCurrentLayer();
 		setOptionsPanelItems(layer);
 	}
 
-	// called from buttonPanel
+	/**
+	 * Saves the visible image as PNG. Called from buttonPanel when save as PNG
+	 * is clicked. buttonPanel also handles file selection
+	 * 
+	 * @param file
+	 *            the file to save the image to
+	 */
 	public void saveImageAsPNG(File file) {
 		imgPanel.savePNG(file);
 	}
 
-	// called from optionspanel
+	/**
+	 * Forces redraw of the image by making a temporary change to the selected
+	 * layer. Works by grabbing the currently selected node, then passing it to
+	 * layersPanel (which handles preparing the layers for drawing) Called from
+	 * optionsPanel when a change is made in the tree
+	 * 
+	 * @param path
+	 *            the path to the newly selected node
+	 */
 	public void saveTempPath(TreePath path) {
 		// System.out.println(path.toString());
 		Layer layer = new Layer("Temp", path);
-		layersPanel.getTempPath(layer);
+		layersPanel.drawImageTempPath(layer);
 	}
 
-	// called from layerspanel
+	/**
+	 * Sends list of files to the image panel to draw. Called from layersPanel
+	 * once it has processed the layers
+	 * 
+	 * @param files
+	 *            the files which are to be drawn
+	 */
 	public void sendListToDraw(List<File> files) {
 		imgPanel.drawList(files);
 	}
 
-	// called from optionspanel
+	/**
+	 * Send option panel items to the layersPanel to save the current layer.
+	 * Called from optionsPanel when save is clicked
+	 */
 	public void sendOptionPanelItems() {
-		Layer layer = getOptionsPanelItems();
+		Layer layer = optionsPanel.getItems();
 
 		// send to what every objects need it
 		layersPanel.receiveLayerItem(layer);
 	}
 
+	/**
+	 * Sets the button panel. Called form main window during initialisation
+	 * 
+	 * @param buttonPanel
+	 *            the new button panel
+	 */
 	public void setButtonPanel(ButtonPanel buttonPanel) {
 		this.buttonPanel = buttonPanel;
 	}
 
+	/**
+	 * Sets the img panel. Called form main window during initialisation
+	 * 
+	 * @param imgPanel
+	 *            the new img panel
+	 */
 	public void setImgPanel(ImgPanel imgPanel) {
 		this.imgPanel = imgPanel;
 	}
 
-	// called form ButtonPanel to replace current layers
+	/**
+	 * Sets the current layer counter. Used to create unique name for layers
+	 * Called from buttonPanel when loading a layers file
+	 * 
+	 * @param layerCounter
+	 *            the new layer counter
+	 */
+	public void setLayerCounter(int layerCounter) {
+		layersPanel.setLayerCounter(layerCounter);
+	}
+
+	/**
+	 * Replaces the current layers. Called from buttonPanel when loading a
+	 * layers file
+	 * 
+	 * @param layers
+	 *            the new layers
+	 */
 	public void setLayers(List<Layer> layers) {
 		layersPanel.setLayers(layers);
 	}
 
+	/**
+	 * Sets the layers panel. Called from main window during initialisation
+	 * 
+	 * @param layersPanel
+	 *            the new layers panel
+	 */
 	public void setLayersPanel(LayersPanel layersPanel) {
 		this.layersPanel = layersPanel;
 	}
 
+	/**
+	 * Sets the options panel. Called from main window during initialisation
+	 * 
+	 * @param optionsPanel
+	 *            the new options panel
+	 */
 	public void setOptionsPanel(OptionsPanel optionsPanel) {
 		this.optionsPanel = optionsPanel;
 	}
 
-	// called from layerspanel
+	/**
+	 * Sets the options panel items. Called from layersPanel to set the fields
+	 * to the correct values
+	 * 
+	 * @param layer
+	 *            the layer to display
+	 */
 	public void setOptionsPanelItems(Layer layer) {
 		optionsPanel.setItems(layer);
 	}

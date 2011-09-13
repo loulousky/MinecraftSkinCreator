@@ -19,20 +19,42 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+/**
+ * The Class SkinGUI. Initialises all frames and displays them to the user
+ */
 public class SkinGUI extends JFrame {
-	private static final long serialVersionUID = -1146800151202328550L;
-	private Controller control;
 
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = -1146800151202328550L;
+
+	/** The version of this program. */
+	private static final String version = "1.1.0";
+
+	/**
+	 * The main method. Launches the GUI
+	 * 
+	 * @param args
+	 *            the command line arguments - not used
+	 */
 	public static void main(String[] args) {
 		new SkinGUI();
 	}
 
+	/** The comms control. */
+	private Controller control;
+
+	/**
+	 * Instantiates a new skin gui.
+	 */
 	public SkinGUI() {
 		initGUI();
 	}
 
+	/**
+	 * Inits the gui.
+	 */
 	private void initGUI() {
-		setTitle("Skin Creator V1.0.2");
+		setTitle("Skin Creator V" + version);
 		setSize(800, 600);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -43,39 +65,38 @@ public class SkinGUI extends JFrame {
 		JPanel rightPanel = new JPanel();
 		rightPanel.setLayout(new BorderLayout());
 
-		control = new Controller();
-
 		JFileChooser folderChooser = new JFileChooser(".");
 		folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		folderChooser.setDialogTitle("Open base directory for layers");
 
 		int returnVal = folderChooser.showOpenDialog(this);
 
-		File file;
+		File rootFolder;
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			file = folderChooser.getSelectedFile();
+			rootFolder = folderChooser.getSelectedFile();
 
 		} else {
-			file = new File(".");
+			rootFolder = new File(".");
 		}
 
-		// OptionsPanel options = new OptionsPanel(control, new
-		// File("./Delmark"));
-		// OptionsPanel options = new OptionsPanel(control, new File("."));
-		OptionsPanel options = new OptionsPanel(control, file);
-		control.setOptionsPanel(options);
-		rightPanel.add(options, BorderLayout.CENTER);
+		control = new Controller();
 
-		LayersPanel layers = new LayersPanel(control);
+		OptionsPanel options = new OptionsPanel(control, rootFolder);
+		control.setOptionsPanel(options);
+
+		LayersPanel layers = new LayersPanel(control, rootFolder);
 		control.setLayersPanel(layers);
-		leftPanel.add(layers, BorderLayout.CENTER);
 
 		ImgPanel imagePanel = new ImgPanel();
 		control.setImgPanel(imagePanel);
+
+		ButtonPanel buttonPanel = new ButtonPanel(control, rootFolder);
+		control.setButtonPanel(buttonPanel);
+
+		leftPanel.add(layers, BorderLayout.CENTER);
 		leftPanel.add(imagePanel, BorderLayout.SOUTH);
 
-		ButtonPanel buttonPanel = new ButtonPanel(control);
-		control.setButtonPanel(buttonPanel);
+		rightPanel.add(options, BorderLayout.CENTER);
 		rightPanel.add(buttonPanel, BorderLayout.SOUTH);
 
 		panel.add(rightPanel, BorderLayout.CENTER);

@@ -63,6 +63,18 @@ public class Controller {
 	}
 
 	/**
+	 * Gets the current path to the selected file/folder in the JTree. This is
+	 * called from LayersPanel when adding a new layer to preselect the last
+	 * used file.
+	 * 
+	 * @return
+	 */
+	public TreePath getCurrentPath() {
+		TreePath currPath = optionsPanel.getTreePath();
+		return currPath;
+	}
+
+	/**
 	 * Gets the current counter for the number of layers. Used to give each new
 	 * layer a unique name. Called from buttonPanel when saving a layers file
 	 * 
@@ -158,6 +170,17 @@ public class Controller {
 	 */
 	public void setButtonPanel(ButtonPanel buttonPanel) {
 		this.buttonPanel = buttonPanel;
+	}
+
+	/**
+	 * Sets the current path to the selected file/folder in the JTree. This is
+	 * called from LayersPanel when adding a new layer to preselect the last
+	 * used file.
+	 * 
+	 * @return
+	 */
+	public void setCurrentPath(TreePath newPath) {
+		optionsPanel.setTreePath(newPath);
 	}
 
 	/**

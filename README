@@ -20,6 +20,8 @@ You can modify the layer name by editing the text box at the top of the window, 
 
 Continue adding layers until you are happy with the result, and click "Export current image as PNG" to save your skin. This button will save the image you can currently see on the bottom-left, but at the correct size for a skin.
 
+Checking the box on the left will automatically select the file you have selected when you click "Add Layer". This allows you to keep the folder expanded and quickly select the next part for the skin.
+
 Clicking "Save layers" allows you to export the layers you have chosen to edit them at a later date.
 
 
@@ -32,7 +34,10 @@ None at the moment.
 
 ===============
 Version History:
-
+V 1.1.1 (27/09/2011)
+		- Added checkbox to preselect last used file when adding new layer
+		- Set layer save/load box to appear in the centre of the screen
+		
 V 1.1.0 (13/09/2011)
 		- Completely new tree code
 		- Fixed layer loading bug

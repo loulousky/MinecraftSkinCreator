@@ -106,7 +106,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 			FileNameExtensionFilter filter = new FileNameExtensionFilter(
 					"Layer File (*.lay)", "lay");
 			fileChooser.setFileFilter(filter);
-			int returnVal = fileChooser.showOpenDialog(this);
+			int returnVal = fileChooser.showOpenDialog(null);
 
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File file = fileChooser.getSelectedFile();
@@ -237,7 +237,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		filechooser.setFileFilter(filter);
 		filechooser.setDialogTitle(title);
 
-		int chooserVal = filechooser.showSaveDialog(this);
+		int chooserVal = filechooser.showSaveDialog(null);
 		if (chooserVal == JFileChooser.APPROVE_OPTION) {
 			File file = filechooser.getSelectedFile();
 			// System.out.println("Save to: " + file.getName());

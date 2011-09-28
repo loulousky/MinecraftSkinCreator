@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -68,6 +69,12 @@ public class LayersPanel extends JPanel implements ActionListener,
 	private File rootFolder;
 
 	/**
+	 * The checkbox to choose if path is same as last selected when adding a new
+	 * layer
+	 */
+	private JCheckBox useLastPath;
+
+	/**
 	 * Instantiates a new layers panel.
 	 * 
 	 * @param control
@@ -82,7 +89,7 @@ public class LayersPanel extends JPanel implements ActionListener,
 	}
 
 	/*
-	 * (non-Javadoc)
+	 * Runs required methods when a button is pressed. (non-Javadoc)
 	 * 
 	 * @see
 	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -91,7 +98,17 @@ public class LayersPanel extends JPanel implements ActionListener,
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == addButton) {
 			layerCounter++;
-			Layer layer = new Layer("Layer " + layerCounter, null);
+
+			// Default path if box is not selected
+			TreePath pathForLayer = null;
+
+			// check if checkbox is selected
+			if (useLastPath.isSelected() == true) {
+				// if so, set new layer to use last path
+				pathForLayer = control.getCurrentPath();
+			}
+
+			Layer layer = new Layer("Layer " + layerCounter, pathForLayer);
 			layers.add(layer);
 			updateList();
 			list.setSelectedIndex(layers.size() - 1);
@@ -297,8 +314,15 @@ public class LayersPanel extends JPanel implements ActionListener,
 		JPanel buttonsBottom = new JPanel();
 		buttonsBottom.add(moveUpButton);
 		buttonsBottom.add(moveDownButton);
+
+		useLastPath = new JCheckBox(
+				"Select last used file when adding new layer", false);
+		JPanel checkBoxArea = new JPanel();
+		checkBoxArea.add(useLastPath);
+
 		buttons.add(buttonsTop, BorderLayout.NORTH);
-		buttons.add(buttonsBottom, BorderLayout.SOUTH);
+		buttons.add(buttonsBottom, BorderLayout.CENTER);
+		buttons.add(checkBoxArea, BorderLayout.SOUTH);
 		add(buttons, BorderLayout.SOUTH);
 
 		enableControls(false);

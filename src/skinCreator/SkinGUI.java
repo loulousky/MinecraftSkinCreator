@@ -28,7 +28,7 @@ public class SkinGUI extends JFrame {
 	private static final long serialVersionUID = -1146800151202328550L;
 
 	/** The version of this program. */
-	private static final String version = "1.1.0";
+	private static final String version = "1.1.1";
 
 	/**
 	 * The main method. Launches the GUI

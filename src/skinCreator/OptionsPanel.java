@@ -157,7 +157,7 @@ public class OptionsPanel extends JPanel implements ActionListener,
 	 * 
 	 * @return the tree path
 	 */
-	private TreePath getTreePath() {
+	public TreePath getTreePath() {
 		return tree.getSelectionPath();
 	}
 
@@ -238,7 +238,7 @@ public class OptionsPanel extends JPanel implements ActionListener,
 	 * @param path
 	 *            the tree path to select
 	 */
-	private void setTreePath(TreePath path) {
+	public void setTreePath(TreePath path) {
 
 		collapseAll();
 		if (path != null) {
